@@ -2,9 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
+	"unicode"
 )
 
 type ViaCep struct {
@@ -100,7 +104,7 @@ func SearchCep(cep string) (*ViaCep, error) {
 }
 
 func SearchTemperature(city string) (*WeatherApi, error) {
-	req, err := http.Get("http://api.weatherapi.com/v1/current.json?key=148a907896384b7b89f232427240605&aqi=no&q=" + city)
+	req, err := http.Get("http://api.weatherapi.com/v1/current.json?key=148a907896384b7b89f232427240605&aqi=no&q=" + removeDiacriticsAndEncodeCityName(city))
 
 	if err != nil {
 		return nil, err
@@ -122,4 +126,16 @@ func SearchTemperature(city string) (*WeatherApi, error) {
 	data.Current.TempK = data.Current.TempC + 273
 
 	return &data, nil
+}
+
+func isMn(r rune) bool {
+	return unicode.Is(unicode.Mn, r)
+}
+
+func removeDiacriticsAndEncodeCityName(s string) string {
+	t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
+	result, _, _ := transform.String(t, s)
+	result = url.QueryEscape(result)
+	println(result)
+	return result
 }
