@@ -49,7 +49,8 @@ func SearchCepHandler(w http.ResponseWriter, r *http.Request) {
 	cep, err := SearchCep(cepParam)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("error while searching for cep"))
+		errorStr := err.Error()
+		w.Write([]byte("error while searching for cep: " + errorStr))
 		return
 	}
 
@@ -62,11 +63,23 @@ func SearchCepHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	weather, err := SearchTemperature(cep.Localidade)
-	json.NewEncoder(w).Encode(weather.Current)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		errorStr := err.Error()
+		w.Write([]byte("error while searching for temperature: " + errorStr))
+		return
+	}
+	if weather != nil {
+		json.NewEncoder(w).Encode(weather.Current)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("can not find temperature"))
+	}
 }
 
 func SearchCep(cep string) (*ViaCep, error) {
-	req, err := http.Get("https://viacep.com.br/ws/" + cep + "/json/")
+	req, err := http.Get("http://viacep.com.br/ws/" + cep + "/json/")
 	if err != nil {
 		return nil, err
 	}
