@@ -104,7 +104,7 @@ func SearchCep(cep string) (*ViaCep, error) {
 }
 
 func SearchTemperature(city string) (*WeatherApi, error) {
-	req, err := http.Get("http://api.weatherapi.com/v1/current.json?key=148a907896384b7b89f232427240605&aqi=no&q=" + removeDiacriticsAndEncodeCityName(city))
+	req, err := http.Get("http://api.weatherapi.com/v1/current.json?key=<YOUR_KEY>&aqi=no&q=" + removeDiacriticsAndEncodeCityName(city))
 
 	if err != nil {
 		return nil, err
